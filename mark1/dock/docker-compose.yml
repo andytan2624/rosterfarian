@@ -1,0 +1,53 @@
+#This file is inside a folder named 'dock' at the root of my laravel project
+version: "3.1"
+services:
+    #PHP with apache
+    httpd:
+      #image will be built by processing the Dockerfile in this path
+      build: .
+      links:
+        - db:db
+      #map ports between host and the service
+      ports:
+        - 8180:80
+        - 1080:1080
+      #map host folders (relative to this file) to service
+      volumes:
+        - ../public/:/var/www/html
+        - ../:/var/www
+      expose:
+        - "8080"
+      #mark the db services as a dependency
+      depends_on:
+        [db]
+      #give an alias to this, to refer to it without knowing ip
+      networks:
+        report:
+          aliases:
+            - web
+    #maria db
+    db:
+      image: mysql:5.7
+      restart: always
+      #storing the mysql folder outside allows persistence
+      #of databases between executions
+      volumes:
+        - ../dock-mysql/:/var/lib/mysql
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_USER: test
+        MYSQL_PASSWORD: test
+        MYSQL_DATABASE: test
+      ports:
+        - 3307:3306
+      expose:
+        - "3307"
+      networks:
+        report:
+          aliases:
+            - database
+volumes:
+    db_data:
+networks:
+  report:
+    driver: bridge
